@@ -4,26 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner</title>
+    <!-- Thư viện html5-qrcode -->
     <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <style>
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            display: none; /* Ẩn khung quét khi chưa mở camera */
+        }
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        #startButton {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h1>QR Code Scanner</h1>
-    <div id="reader" style="width: 500px;"></div>
+
+    <h2 style="text-align:center;">QR Code Scanner</h2>
+    <button id="startButton">Mở Camera</button>
+    <div id="reader"></div>
+    <div id="result">Kết quả quét sẽ hiển thị ở đây</div>
+
     <script>
+        let html5QrCode;
+
+        // Hàm xử lý khi quét thành công mã QR
         function onScanSuccess(decodedText, decodedResult) {
-            // Handle the scanned code as you like, for example:
-            console.log(`Code matched = ${decodedText}`, decodedResult);
-            window.location.href = decodedText; // Redirect to the URL
+            document.getElementById('result').innerText = `Kết quả: ${decodedText}`;
+            html5QrCode.stop(); // Ngừng quét sau khi quét thành công
+            document.getElementById('reader').style.display = "none"; // Ẩn khung quét
+            document.getElementById('startButton').style.display = "block"; // Hiện nút mở camera lại
         }
 
-        function onScanFailure(error) {
-            // Handle scan failure, usually better to ignore and keep scanning.
-            console.warn(`Code scan error = ${error}`);
-        }
+        // Hàm xử lý khi nhấn nút "Mở Camera"
+        document.getElementById('startButton').addEventListener('click', async () => {
+            document.getElementById('reader').style.display = "block"; // Hiển thị khung quét
+            document.getElementById('startButton').style.display = "none"; // Ẩn nút mở camera
 
-        let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            html5QrCode = new Html5Qrcode("reader");
+
+            try {
+                await html5QrCode.start(
+                    { facingMode: "environment" }, // Camera sau (mặt sau)
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    onScanSuccess
+                );
+            } catch (error) {
+                document.getElementById('result').innerText = `Không thể mở camera: ${error}`;
+                document.getElementById('reader').style.display = "none"; // Ẩn khung quét
+                document.getElementById('startButton').style.display = "block"; // Hiện lại nút mở camera
+            }
+        });
     </script>
+
 </body>
 </html>
