@@ -1,71 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner</title>
-    <!-- Thư viện html5-qrcode -->
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <title>Quét QR</title>
+</head>
+
+<body data-rsssl=1>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js"
+        integrity="sha512-k/KAe4Yff9EUdYI5/IAHlwUswqeipP+Cp5qnrsUjTPCgl51La2/JhyyjNciztD7mWNKLSXci48m7cctATKfLlQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         #reader {
-            width: 100%;
-            max-width: 400px;
-            margin: 20px auto;
-            display: none; /* Ẩn khung quét khi chưa mở camera */
+            width: 600px;
         }
+
         #result {
-            margin-top: 20px;
             text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        #startButton {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
+            font-size: 1.5rem;
         }
     </style>
-</head>
-<body>
-
-    <h2 style="text-align:center;">QR Code Scanner</h2>
-    <button id="startButton">Mở Camera</button>
-    <div id="reader"></div>
-    <div id="result">Kết quả quét sẽ hiển thị ở đây</div>
-
+    <main>
+        <div id="reader"></div>
+        <div id="result"></div>
+    </main>
     <script>
-        let html5QrCode;
+        const scanner = new Html5QrcodeScanner('reader', {
+            qrbox: {
+                width: 250,
+                height: 250,
+            },
+            fps: 30,
+        });
+        scanner.render(success, error);
 
-        // Hàm xử lý khi quét thành công mã QR
-        function onScanSuccess(decodedText, decodedResult) {
-            document.getElementById('result').innerText = `Kết quả: ${decodedText}`;
-            html5QrCode.stop(); // Ngừng quét sau khi quét thành công
-            document.getElementById('reader').style.display = "none"; // Ẩn khung quét
-            document.getElementById('startButton').style.display = "block"; // Hiện nút mở camera lại
+        function success(result) {
+            const baseUrl = "http://127.0.0.1:5500/product/detail";
+            const fullUrl = `${baseUrl}/${result}`;
+
+            // Chuyển hướng tự động
+            // window.location.href = fullUrl;
+            window.open(fullUrl, '_blank');
+
+            document.getElementById('result').innerHTML = `
+                <h2>Success!</h2>
+                <p>Không tự động chuyển trang? Nhấp vào: <a href="${result}">${result}</a></p>
+                `;
+
+            scanner.clear();
         }
 
-        // Hàm xử lý khi nhấn nút "Mở Camera"
-        document.getElementById('startButton').addEventListener('click', async () => {
-            document.getElementById('reader').style.display = "block"; // Hiển thị khung quét
-            document.getElementById('startButton').style.display = "none"; // Ẩn nút mở camera
-
-            html5QrCode = new Html5Qrcode("reader");
-
-            try {
-                await html5QrCode.start(
-                    { facingMode: "environment" }, // Camera sau (mặt sau)
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    onScanSuccess
-                );
-            } catch (error) {
-                document.getElementById('result').innerText = `Không thể mở camera: ${error}`;
-                document.getElementById('reader').style.display = "none"; // Ẩn khung quét
-                document.getElementById('startButton').style.display = "block"; // Hiện lại nút mở camera
-            }
-        });
+        function error(err) {
+            console.error(err);
+        }
     </script>
 
 </body>
+
 </html>
